@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#5ec8ff">
+<title>Aereo Stelline</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap">
+<style>
+/* Layout: one full-screen canvas sky, HTML overlays for the few giant buttons a 4-year-old needs. Single bright daytime look, no dark variant on purpose. */
+:root{
+  --sky-top:#5ec8ff; --sky-bottom:#dff6ff;
+  --sun:#ffd54a; --ink:#1d3557; --card:#ffffff;
+  --btn:#ff6f3c; --btn-2:#3ccf91; --btn-3:#ff4fa3;
+  --display:"Baloo 2","Arial Rounded MT Bold","Comic Sans MS",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%;margin:0;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body{background:var(--sky-bottom);color:var(--ink);font-family:var(--display);
+  padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px));padding-block:0}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;background:linear-gradient(var(--sky-top),var(--sky-bottom))}
+.ui{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,3vh,28px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px;text-align:center}
+#menu{background:rgba(255,255,255,.18)}
+h1{margin:0;font-size:clamp(40px,10vw,84px);font-weight:800;line-height:1;color:#fff;text-shadow:0 4px 0 #2a7fb8,0 8px 18px rgba(0,60,120,.35);letter-spacing:.01em;text-wrap:balance}
+.sub{margin:0;font-size:clamp(18px,3.5vw,26px);font-weight:700;color:var(--ink);background:var(--card);padding:8px 18px;border-radius:999px;box-shadow:0 4px 12px rgba(0,60,120,.2)}
+.planes{display:flex;gap:clamp(10px,3vw,22px);flex-wrap:wrap;justify-content:center}
+.plane-pick{width:clamp(78px,20vw,120px);height:clamp(78px,20vw,120px);border-radius:28px;border:6px solid #fff;background:var(--card);box-shadow:0 6px 0 rgba(0,60,120,.25);cursor:pointer;padding:0;display:grid;place-items:center;transition:transform .15s}
+.plane-pick:active{transform:scale(.94)}
+.plane-pick[aria-pressed="true"]{border-color:var(--sun);transform:scale(1.08);box-shadow:0 0 0 6px rgba(255,213,74,.5),0 6px 0 rgba(0,60,120,.25)}
+.plane-pick svg{width:80%;height:80%}
+.big{font:inherit;font-weight:800;font-size:clamp(28px,6vw,46px);color:#fff;background:var(--btn);border:0;border-radius:999px;padding:.45em 1.3em;cursor:pointer;
+  box-shadow:0 8px 0 #c94a1d,0 14px 24px rgba(0,60,120,.3);transition:transform .1s;min-width:60vw;max-width:100%}
+.big:active{transform:translateY(6px);box-shadow:0 2px 0 #c94a1d}
+.big:focus-visible,.round:focus-visible,.plane-pick:focus-visible{outline:5px solid var(--sun);outline-offset:3px}
+#hud{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-top:max(10px,env(safe-area-inset-top,0px))}
+.score{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:6px 18px 6px 10px;font-size:clamp(28px,6vw,44px);font-weight:800;color:var(--ink);box-shadow:0 4px 12px rgba(0,60,120,.25);font-variant-numeric:tabular-nums}
+.score svg{width:1.1em;height:1.1em}
+.hud-btns{display:flex;gap:10px;pointer-events:auto}
+.round{width:clamp(50px,11vw,64px);height:clamp(50px,11vw,64px);border-radius:50%;border:4px solid #fff;background:var(--btn-2);color:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:0 5px 0 rgba(0,60,120,.25);padding:0}
+.round.home{background:var(--btn-3)}
+.round svg{width:58%;height:58%;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.round:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,60,120,.25)}
+#bravo{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none}
+#bravo span{font-size:clamp(52px,16vw,140px);font-weight:800;color:#fff;text-shadow:0 6px 0 #ff6f3c,0 12px 28px rgba(0,60,120,.4);animation:pop .9s ease-out both}
+@keyframes pop{0%{transform:scale(.3) rotate(-8deg);opacity:0}30%{transform:scale(1.15) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+#hint{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--card);border-radius:999px;padding:8px 20px;font-size:clamp(16px,3.5vw,24px);font-weight:700;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,60,120,.2);animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){#hint,#bravo span{animation:none}}
+</style>
+</head>
+<body>
+
+<canvas id="game" aria-label="Cielo con l'aereo"></canvas>
+
+<div id="hud" hidden>
+  <div class="score"><svg viewBox="0 0 24 24"><path fill="#ffd54a" stroke="#f0a500" stroke-width="1.2" stroke-linejoin="round" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.6L12 17.4l-5.9 3.2 1.2-6.6L2.5 9.4l6.6-.9z"/></svg><span id="score">0</span></div>
+  <div class="hud-btns">
+    <button class="round" id="mute" aria-label="Suono"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="mute-waves" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
+    <button class="round home" id="home" aria-label="Torna al menu"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg></button>
+  </div>
+</div>
+<div id="hint" hidden>Tocca lo schermo: l'aereo ti segue!</div>
+<div id="bravo" hidden><span id="bravo-text">BRAVO!</span></div>
+
+<div class="ui" id="menu">
+  <h1>Aereo Stelline</h1>
+  <p class="sub">Scegli il tuo aereo</p>
+  <div class="planes" id="planes"></div>
+  <button class="big" id="play">GIOCA!</button>
+</div>
+
+<script>
+(() => {
+"use strict";
+const cv = document.getElementById('game'), ctx = cv.getContext('2d');
+const menu = document.getElementById('menu'), hud = document.getElementById('hud'), hint = document.getElementById('hint');
+const bravoEl = document.getElementById('bravo'), bravoText = document.getElementById('bravo-text');
+const scoreEl = document.getElementById('score'), muteBtn = document.getElementById('mute'), muteWaves = document.getElementById('mute-waves');
+
+const PLANES = [
+  {body:'#ff4f4f', wing:'#ffd54a', name:'rosso'},
+  {body:'#3b82f6', wing:'#ffffff', name:'blu'},
+  {body:'#3ccf91', wing:'#ffd54a', name:'verde'},
+  {body:'#ff4fa3', wing:'#ffffff', name:'rosa'},
+];
+let planeIdx = 0;
+try { planeIdx = Math.min(3, Math.max(0, +localStorage.getItem('aereo.plane') || 0)); } catch(e){}
+
+const BALLOON_COLORS = ['#ff4f4f','#ff4fa3','#3b82f6','#3ccf91','#ffd54a','#a855f7','#fb923c'];
+const PRAISE = ['BRAVO!','EVVIVA!','WOW!','FANTASTICO!','SUPER!'];
+
+let W=0,H=0,dpr=1;
+function resize(){
+  dpr = Math.min(2, window.devicePixelRatio||1);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener('resize', resize); resize();
+
+/* ---------- audio (synthesised, no files) ---------- */
+let AC=null, master=null, engine=null, muted=false;
+try { muted = localStorage.getItem('aereo.muted')==='1'; } catch(e){}
+function audioInit(){
+  if (AC) { if (AC.state==='suspended') AC.resume(); return; }
+  try {
+    AC = new (window.AudioContext||window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = muted?0:0.8; master.connect(AC.destination);
+    const osc = AC.createOscillator(); osc.type='sawtooth'; osc.frequency.value=70;
+    const lp = AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=260;
+    const g = AC.createGain(); g.gain.value=0;
+    osc.connect(lp); lp.connect(g); g.connect(master); osc.start();
+    engine = {osc,g};
+  } catch(e){ AC=null; }
+}
+function setMuted(m){ muted=m; if(master) master.gain.value = m?0:0.8; muteWaves.style.opacity = m?0.25:1; try{localStorage.setItem('aereo.muted',m?'1':'0');}catch(e){} }
+muteBtn.addEventListener('click', ()=>{ audioInit(); setMuted(!muted); });
+setMuted(muted);
+function chime(step){ // rising pentatonic for consecutive stars
+  if(!AC) return;
+  const notes=[523,587,659,784,880,1047,1175,1319];
+  const f = notes[step%notes.length], t=AC.currentTime;
+  for (const [mult,vol] of [[1,0.35],[2,0.12]]) {
+    const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=f*mult;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.01); g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+0.55);
+  }
+}
+function popSound(){
+  if(!AC) return;
+  const t=AC.currentTime, len=0.12, buf=AC.createBuffer(1,AC.sampleRate*len,AC.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+  const s=AC.createBufferSource(); s.buffer=buf;
+  const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=900; bp.Q.value=0.7;
+  const g=AC.createGain(); g.gain.value=0.6;
+  s.connect(bp); bp.connect(g); g.connect(master); s.start(t);
+  const o=AC.createOscillator(), og=AC.createGain(); o.frequency.setValueAtTime(300,t); o.frequency.exponentialRampToValueAtTime(900,t+0.1);
+  og.gain.setValueAtTime(0.25,t); og.gain.exponentialRampToValueAtTime(0.001,t+0.15); o.connect(og); og.connect(master); o.start(t); o.stop(t+0.16);
+}
+function fanfare(){
+  if(!AC) return;
+  const seq=[523,659,784,1047,784,1047], t0=AC.currentTime;
+  seq.forEach((f,i)=>{ const o=AC.createOscillator(), g=AC.createGain(); o.type='triangle'; o.frequency.value=f;
+    const t=t0+i*0.11; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.3,t+0.02); g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+0.4); });
+}
+function puff(){
+  if(!AC) return;
+  const t=AC.currentTime, len=0.3, buf=AC.createBuffer(1,AC.sampleRate*len,AC.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/d.length);
+  const s=AC.createBufferSource(); s.buffer=buf; const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=600;
+  const g=AC.createGain(); g.gain.value=0.15; s.connect(lp); lp.connect(g); g.connect(master); s.start(t);
+}
+
+/* ---------- plane drawing (shared by menu buttons and game) ---------- */
+function planeSVG(c){
+  return `<svg viewBox="-60 -40 120 80" aria-hidden="true">
+    <ellipse cx="0" cy="0" rx="46" ry="14" fill="${c.body}"/>
+    <path d="M-38 -4 L-56 -30 L-42 -30 L-26 -8 Z" fill="${c.body}" stroke="#1d3557" stroke-width="2"/>
+    <path d="M-6 -2 L-22 -30 L-2 -30 L18 -2 Z" fill="${c.wing}" stroke="#1d3557" stroke-width="2"/>
+    <path d="M-6 2 L-22 30 L-2 30 L18 2 Z" fill="${c.wing}" stroke="#1d3557" stroke-width="2"/>
+    <ellipse cx="0" cy="0" rx="46" ry="14" fill="none" stroke="#1d3557" stroke-width="2.5"/>
+    <circle cx="14" cy="-3" r="6" fill="#bfe9ff" stroke="#1d3557" stroke-width="2"/>
+    <rect x="44" y="-14" width="5" height="28" rx="2" fill="#1d3557"/>
+  </svg>`;
+}
+function drawPlane(x,y,tilt,c,t){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(tilt);
+  const s = Math.min(W,H)/520*1.0 + 0.6; ctx.scale(s,s);
+  ctx.lineWidth=2.5; ctx.strokeStyle='#1d3557'; ctx.lineJoin='round';
+  // tail fin
+  ctx.fillStyle=c.body; ctx.beginPath(); ctx.moveTo(-38,-4); ctx.lineTo(-56,-30); ctx.lineTo(-42,-30); ctx.lineTo(-26,-8); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // far wing
+  ctx.fillStyle=c.wing; ctx.beginPath(); ctx.moveTo(-6,-2); ctx.lineTo(-22,-30); ctx.lineTo(-2,-30); ctx.lineTo(18,-2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // body
+  ctx.fillStyle=c.body; ctx.beginPath(); ctx.ellipse(0,0,46,14,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // near wing
+  ctx.fillStyle=c.wing; ctx.beginPath(); ctx.moveTo(-6,2); ctx.lineTo(-22,30); ctx.lineTo(-2,30); ctx.lineTo(18,2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // window with a little pilot
+  ctx.fillStyle='#bfe9ff'; ctx.beginPath(); ctx.arc(14,-3,7,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(14,-1,2.5,0,Math.PI*2); ctx.fill();
+  // propeller spin
+  ctx.save(); ctx.translate(47,0); ctx.rotate(t*40); ctx.fillStyle='#1d3557'; ctx.fillRect(-2.5,-16,5,32); ctx.rotate(Math.PI/2); ctx.fillRect(-2.5,-16,5,32); ctx.restore();
+  ctx.restore();
+}
+
+/* ---------- menu ---------- */
+const planesBox = document.getElementById('planes');
+PLANES.forEach((c,i)=>{
+  const b=document.createElement('button'); b.className='plane-pick'; b.type='button'; b.innerHTML=planeSVG(c);
+  b.setAttribute('aria-label','Aereo '+c.name); b.setAttribute('aria-pressed', i===planeIdx?'true':'false');
+  b.addEventListener('click',()=>{ planeIdx=i; try{localStorage.setItem('aereo.plane',i);}catch(e){}
+    [...planesBox.children].forEach((el,j)=>el.setAttribute('aria-pressed', j===i?'true':'false')); audioInit(); chime(i*2); });
+  planesBox.appendChild(b);
+});
+
+/* ---------- game state ---------- */
+let state='menu', score=0, streak=0, lastT=0, time=0;
+const plane={x:0,y:0,tx:0,ty:0,vy:0,tilt:0};
+let items=[], clouds=[], farClouds=[], particles=[], birds=[], confetti=[];
+let spawnTimer=0, cloudTimer=0, birdTimer=0, bravoTimer=0, hintTimer=0;
+const keys={};
+
+function startGame(){
+  audioInit();
+  state='play'; score=0; streak=0; items=[]; particles=[]; confetti=[]; birds=[];
+  plane.x=W*0.25; plane.y=H*0.5; plane.tx=plane.x; plane.ty=plane.y; plane.vy=0;
+  scoreEl.textContent='0';
+  menu.hidden=true; hud.hidden=false; hint.hidden=false; hintTimer=5;
+  if(engine) engine.g.gain.setTargetAtTime(0.12, AC.currentTime, 0.3);
+  spawnTimer=0.4;
+  try { if(document.fullscreenElement==null && document.documentElement.requestFullscreen && window.innerWidth<700) document.documentElement.requestFullscreen().catch(()=>{}); } catch(e){}
+}
+function goMenu(){
+  state='menu'; menu.hidden=false; hud.hidden=true; hint.hidden=true; bravoEl.hidden=true;
+  if(engine) engine.g.gain.setTargetAtTime(0, AC.currentTime, 0.2);
+}
+document.getElementById('play').addEventListener('click', startGame);
+document.getElementById('home').addEventListener('click', goMenu);
+
+/* ---------- input: the plane goes where the finger is ---------- */
+let pointerDown=false;
+function setTarget(e){
+  const r=cv.getBoundingClientRect();
+  plane.tx = Math.min(W*0.6, Math.max(40, e.clientX-r.left));
+  plane.ty = Math.min(H-40, Math.max(40, e.clientY-r.top));
+}
+cv.addEventListener('pointerdown', e=>{ if(state!=='play') return; pointerDown=true; setTarget(e); hint.hidden=true; });
+cv.addEventListener('pointermove', e=>{ if(state==='play' && pointerDown) setTarget(e); });
+window.addEventListener('pointerup', ()=>pointerDown=false);
+window.addEventListener('pointercancel', ()=>pointerDown=false);
+window.addEventListener('keydown', e=>{ keys[e.key]=true; if(state==='play' && e.key.startsWith('Arrow')) { e.preventDefault(); hint.hidden=true; } if(state==='menu' && (e.key===' '||e.key==='Enter')) startGame(); });
+window.addEventListener('keyup', e=>keys[e.key]=false);
+
+/* ---------- world ---------- */
+function makeCloud(far, x){
+  const s = far ? 0.5+Math.random()*0.4 : 0.9+Math.random()*0.8;
+  return {x: x ?? W+120*s, y: Math.random()*H*0.9, s, far, puffs:[0,1,2,3].map(i=>({dx:(i-1.5)*34, dy:(Math.random()-0.5)*14, r:26+Math.random()*16})), wob:0};
+}
+for(let i=0;i<4;i++) farClouds.push(makeCloud(true, Math.random()*W));
+for(let i=0;i<3;i++) clouds.push(makeCloud(false, Math.random()*W));
+
+function spawnItem(){
+  const r=Math.random();
+  const y = 60+Math.random()*(H-120);
+  if (r<0.55) items.push({kind:'star', x:W+40, y, r:22, spin:Math.random()*6, ph:Math.random()*6});
+  else if (r<0.9) items.push({kind:'balloon', x:W+40, y, r:26, color:BALLOON_COLORS[Math.floor(Math.random()*BALLOON_COLORS.length)], ph:Math.random()*6});
+  else items.push({kind:'rainbow', x:W+60, y, r:30, ph:0});
+}
+function burst(x,y,color,n){
+  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=120+Math.random()*220;
+    particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.7+Math.random()*0.4,t:0,color,r:4+Math.random()*5}); }
+}
+function sayBravo(){
+  bravoText.textContent = PRAISE[Math.floor(Math.random()*PRAISE.length)];
+  bravoEl.hidden=false; bravoTimer=1.6; fanfare();
+  for(let i=0;i<90;i++) confetti.push({x:Math.random()*W, y:-20-Math.random()*H*0.3, vx:(Math.random()-0.5)*60, vy:120+Math.random()*160, rot:Math.random()*6, vr:(Math.random()-0.5)*8, color:BALLOON_COLORS[i%BALLOON_COLORS.length], w:8+Math.random()*8, h:5+Math.random()*5});
+}
+
+function update(dt){
+  time+=dt;
+  const speed = W*0.28; // px/s, gentle
+  // clouds
+  for (const arr of [farClouds, clouds]) for (const c of arr) { c.x -= speed*(c.far?0.25:0.55)*c.s*dt; c.wob*=0.92; if (c.x < -200*c.s) { Object.assign(c, makeCloud(c.far)); } }
+  if (state!=='play') { // menu idle: gently drift items anyway
+    return;
+  }
+  // keyboard moves the target
+  const ks = 420*dt;
+  if (keys.ArrowUp) plane.ty-=ks; if (keys.ArrowDown) plane.ty+=ks; if (keys.ArrowLeft) plane.tx-=ks; if (keys.ArrowRight) plane.tx+=ks;
+  plane.tx=Math.min(W*0.6,Math.max(40,plane.tx)); plane.ty=Math.min(H-40,Math.max(40,plane.ty));
+  // plane eases toward the target
+  const k = 1-Math.pow(0.001, dt);
+  const ny = plane.y + (plane.ty-plane.y)*k*0.9;
+  plane.vy = (ny-plane.y)/dt; plane.y=ny;
+  plane.x += (plane.tx-plane.x)*k*0.6;
+  plane.y += Math.sin(time*2.2)*0.25; // idle bob
+  const targetTilt = Math.max(-0.35, Math.min(0.35, plane.vy/900));
+  plane.tilt += (targetTilt-plane.tilt)*Math.min(1,dt*8);
+  if (engine) engine.osc.frequency.setTargetAtTime(70+Math.abs(plane.vy)*0.05, AC.currentTime, 0.1);
+
+  // hint
+  if (hintTimer>0) { hintTimer-=dt; if(hintTimer<=0) hint.hidden=true; }
+  if (bravoTimer>0) { bravoTimer-=dt; if (bravoTimer<=0) bravoEl.hidden=true; }
+
+  // spawn
+  spawnTimer-=dt; if (spawnTimer<=0) { spawnItem(); spawnTimer = 0.9+Math.random()*0.8; }
+  birdTimer-=dt; if (birdTimer<=0) { birds.push({x:W+40, y:60+Math.random()*H*0.5, flap:0, s:0.8+Math.random()*0.5}); birdTimer=6+Math.random()*8; }
+
+  // items
+  const pr = Math.min(W,H)/520*1.0+0.6;
+  for (let i=items.length-1;i>=0;i--) {
+    const it=items[i]; it.x -= speed*dt; it.ph += dt; it.y += Math.sin(it.ph*2)*0.3;
+    if (it.kind==='star') it.spin += dt*2;
+    const dx=it.x-plane.x, dy=it.y-plane.y, hit = (it.r+38*pr);
+    if (dx*dx+dy*dy < hit*hit) {
+      items.splice(i,1);
+      if (it.kind==='star') { score++; streak++; chime(streak); burst(it.x,it.y,'#ffd54a',16); }
+      else if (it.kind==='balloon') { score++; streak++; popSound(); burst(it.x,it.y,it.color,22); }
+      else { score+=3; streak+=3; fanfare(); for (const c of BALLOON_COLORS) burst(it.x,it.y,c,6); }
+      scoreEl.textContent=score;
+      if (score>0 && Math.floor(score/10) > Math.floor((score-(it.kind==='rainbow'?3:1))/10)) sayBravo();
+    } else if (it.x < -80) { items.splice(i,1); streak=0; }
+  }
+  // cloud pass-through: soft puff, no penalty
+  for (const c of clouds) { const dx=c.x-plane.x, dy=c.y-plane.y; if (Math.abs(dx)<70*c.s && Math.abs(dy)<40*c.s && c.wob<0.1 && !c.inside) { c.wob=1; c.inside=true; puff(); } else if (Math.abs(dx)>90*c.s||Math.abs(dy)>60*c.s) c.inside=false; }
+  // birds
+  for (let i=birds.length-1;i>=0;i--) { const b=birds[i]; b.x -= speed*0.7*dt; b.flap+=dt*10; b.y+=Math.sin(b.flap*0.5)*0.4; if (b.x<-60) birds.splice(i,1); }
+  // particles
+  for (let i=particles.length-1;i>=0;i--) { const p=particles[i]; p.t+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=300*dt; p.vx*=0.98; if (p.t>p.life) particles.splice(i,1); }
+  for (let i=confetti.length-1;i>=0;i--) { const c=confetti[i]; c.x+=c.vx*dt; c.y+=c.vy*dt; c.rot+=c.vr*dt; if (c.y>H+30) confetti.splice(i,1); }
+}
+
+/* ---------- drawing ---------- */
+function drawCloud(c, alpha){
+  ctx.save(); ctx.translate(c.x, c.y + Math.sin(time*3+c.x)*c.wob*6); ctx.scale(c.s*(1+c.wob*0.08), c.s*(1-c.wob*0.08));
+  ctx.globalAlpha=alpha; ctx.fillStyle='#fff';
+  ctx.beginPath(); for (const p of c.puffs) { ctx.moveTo(p.dx+p.r,p.dy); ctx.arc(p.dx,p.dy,p.r,0,Math.PI*2); } ctx.fill();
+  ctx.fillStyle='rgba(120,180,230,.25)'; ctx.beginPath(); ctx.ellipse(0,20,70,10,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawStar(x,y,r,rot,color){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.beginPath();
+  for (let i=0;i<10;i++){ const a=i*Math.PI/5-Math.PI/2, rr=i%2?r*0.45:r; ctx.lineTo(Math.cos(a)*rr, Math.sin(a)*rr); }
+  ctx.closePath(); ctx.fillStyle=color; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#f0a500'; ctx.lineJoin='round'; ctx.stroke(); ctx.restore();
+}
+function drawBalloon(it){
+  ctx.save(); ctx.translate(it.x,it.y);
+  ctx.strokeStyle='rgba(29,53,87,.6)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,it.r); ctx.quadraticCurveTo(6,it.r+20, 0,it.r+40); ctx.stroke();
+  ctx.fillStyle=it.color; ctx.beginPath(); ctx.ellipse(0,0,it.r*0.85,it.r,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-5,it.r-2); ctx.lineTo(5,it.r-2); ctx.lineTo(0,it.r+6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(-it.r*0.3,-it.r*0.35,it.r*0.22,it.r*0.35,-0.4,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawRainbow(it){
+  ctx.save(); ctx.translate(it.x,it.y+12); ctx.lineWidth=6;
+  ['#ff4f4f','#fb923c','#ffd54a','#3ccf91','#3b82f6','#a855f7'].forEach((c,i)=>{ ctx.strokeStyle=c; ctx.beginPath(); ctx.arc(0,0,it.r+6-i*6,Math.PI,0); ctx.stroke(); });
+  ctx.fillStyle='#fff'; for (const sx of [-it.r-2, it.r+2]) { ctx.beginPath(); ctx.arc(sx,2,10,0,Math.PI*2); ctx.arc(sx+(sx<0?8:-8),-4,9,0,Math.PI*2); ctx.fill(); }
+  ctx.restore();
+}
+function drawBird(b){
+  ctx.save(); ctx.translate(b.x,b.y); ctx.scale(b.s,b.s); ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round';
+  const f=Math.sin(b.flap)*8; ctx.beginPath(); ctx.moveTo(-18,f); ctx.quadraticCurveTo(-9,-8,0,0); ctx.quadraticCurveTo(9,-8,18,f); ctx.stroke(); ctx.restore();
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // sun
+  ctx.save(); ctx.translate(W-90, 90); ctx.fillStyle='rgba(255,213,74,.35)'; ctx.beginPath(); ctx.arc(0,0,70+Math.sin(time)*3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffd54a'; ctx.beginPath(); ctx.arc(0,0,48,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(-14,-6,4,0,Math.PI*2); ctx.arc(14,-6,4,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(0,4,18,0.25*Math.PI,0.75*Math.PI); ctx.stroke(); ctx.restore();
+  for (const c of farClouds) drawCloud(c, 0.6);
+  for (const b of birds) drawBird(b);
+  if (state==='play') {
+    for (const it of items) { if (it.kind==='star') drawStar(it.x,it.y,it.r+Math.sin(it.ph*4)*2,it.spin,'#ffd54a'); else if (it.kind==='balloon') drawBalloon(it); else drawRainbow(it); }
+    drawPlane(plane.x, plane.y, plane.tilt, PLANES[planeIdx], time);
+  } else {
+    // menu: plane cruises along the bottom
+    drawPlane(W*0.5 + Math.sin(time*0.7)*W*0.25, H*0.86 + Math.sin(time*1.4)*10, Math.cos(time*0.7)*0.12, PLANES[planeIdx], time);
+  }
+  for (const c of clouds) drawCloud(c, 0.92);
+  for (const p of particles) { ctx.globalAlpha=1-p.t/p.life; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+  ctx.globalAlpha=1;
+  for (const c of confetti) { ctx.save(); ctx.translate(c.x,c.y); ctx.rotate(c.rot); ctx.fillStyle=c.color; ctx.fillRect(-c.w/2,-c.h/2,c.w,c.h); ctx.restore(); }
+}
+
+function loop(ts){
+  if (!lastT) lastT=ts; let dt=(ts-lastT)/1000; lastT=ts; if (dt>0.05) dt=0.05;
+  update(dt); draw(); requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+document.addEventListener('visibilitychange', ()=>{ if (document.hidden && AC) AC.suspend(); else if (AC && state==='play') AC.resume(); });
+})();
+</script>
+</body>
+</html>
