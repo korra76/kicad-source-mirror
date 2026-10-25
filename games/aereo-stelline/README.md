@@ -6,7 +6,7 @@ e raccoglie stelline, palloncini e arcobaleni. Non si perde mai.
 ## Come si gioca
 - Tocca lo schermo (o clicca): l'aereo vola dove c'è il dito.
 - Su PC funzionano anche le frecce della tastiera.
-- Ogni 10 stelline arriva un "BRAVO!" con i coriandoli.
+- Ogni 10 oggetti raccolti si passa al livello successivo: cambia il mondo (tramonto, mare, montagne, notte, spazio, giardino, dolci, arcobaleno) e cambiano le cose da raccogliere.
 - Pulsante verde: suono acceso/spento. Pulsante rosa: torna al menu.
 
 ## Piattaforme

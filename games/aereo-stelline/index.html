@@ -21,7 +21,7 @@
 html,body{height:100%;margin:0;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 body{background:var(--sky-bottom);color:var(--ink);font-family:var(--display);
   padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px));padding-block:0}
-#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;background:linear-gradient(var(--sky-top),var(--sky-bottom))}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;background:var(--sky-bottom)}
 .ui{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,3vh,28px);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px;text-align:center}
 #menu{background:rgba(255,255,255,.18)}
@@ -40,12 +40,16 @@ h1{margin:0;font-size:clamp(40px,10vw,84px);font-weight:800;line-height:1;color:
   padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-top:max(10px,env(safe-area-inset-top,0px))}
 .score{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:6px 18px 6px 10px;font-size:clamp(28px,6vw,44px);font-weight:800;color:var(--ink);box-shadow:0 4px 12px rgba(0,60,120,.25);font-variant-numeric:tabular-nums}
 .score svg{width:1.1em;height:1.1em}
+.score.level{font-size:clamp(16px,3.5vw,24px);padding:8px 16px;align-self:center}
+#hud{flex-wrap:wrap;gap:8px}
 .hud-btns{display:flex;gap:10px;pointer-events:auto}
 .round{width:clamp(50px,11vw,64px);height:clamp(50px,11vw,64px);border-radius:50%;border:4px solid #fff;background:var(--btn-2);color:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:0 5px 0 rgba(0,60,120,.25);padding:0}
 .round.home{background:var(--btn-3)}
 .round svg{width:58%;height:58%;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .round:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,60,120,.25)}
-#bravo{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none}
+#bravo{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center}
+#bravo>div{display:grid;gap:12px;justify-items:center}
+#level-name{font-size:clamp(22px,5vw,36px)}
 #bravo span{font-size:clamp(52px,16vw,140px);font-weight:800;color:#fff;text-shadow:0 6px 0 #ff6f3c,0 12px 28px rgba(0,60,120,.4);animation:pop .9s ease-out both}
 @keyframes pop{0%{transform:scale(.3) rotate(-8deg);opacity:0}30%{transform:scale(1.15) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 #hint{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--card);border-radius:999px;padding:8px 20px;font-size:clamp(16px,3.5vw,24px);font-weight:700;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,60,120,.2);animation:bob 1.4s ease-in-out infinite}
@@ -59,13 +63,14 @@ h1{margin:0;font-size:clamp(40px,10vw,84px);font-weight:800;line-height:1;color:
 
 <div id="hud" hidden>
   <div class="score"><svg viewBox="0 0 24 24"><path fill="#ffd54a" stroke="#f0a500" stroke-width="1.2" stroke-linejoin="round" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.6L12 17.4l-5.9 3.2 1.2-6.6L2.5 9.4l6.6-.9z"/></svg><span id="score">0</span></div>
+  <div class="score level" id="level-pill">Livello <span id="level">1</span></div>
   <div class="hud-btns">
     <button class="round" id="mute" aria-label="Suono"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="mute-waves" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
     <button class="round home" id="home" aria-label="Torna al menu"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg></button>
   </div>
 </div>
 <div id="hint" hidden>Tocca lo schermo: l'aereo ti segue!</div>
-<div id="bravo" hidden><span id="bravo-text">BRAVO!</span></div>
+<div id="bravo" hidden><div><span id="bravo-text">BRAVO!</span><div id="level-name" class="sub" hidden>Cielo</div></div></div>
 
 <div class="ui" id="menu">
   <h1>Aereo Stelline</h1>
@@ -80,7 +85,7 @@ h1{margin:0;font-size:clamp(40px,10vw,84px);font-weight:800;line-height:1;color:
 const cv = document.getElementById('game'), ctx = cv.getContext('2d');
 const menu = document.getElementById('menu'), hud = document.getElementById('hud'), hint = document.getElementById('hint');
 const bravoEl = document.getElementById('bravo'), bravoText = document.getElementById('bravo-text');
-const scoreEl = document.getElementById('score'), muteBtn = document.getElementById('mute'), muteWaves = document.getElementById('mute-waves');
+const scoreEl = document.getElementById('score'), levelName = document.getElementById('level-name'), muteBtn = document.getElementById('mute'), muteWaves = document.getElementById('mute-waves');
 
 const PLANES = [
   {body:'#ff4f4f', wing:'#ffd54a', name:'rosso'},
@@ -199,6 +204,35 @@ PLANES.forEach((c,i)=>{
   planesBox.appendChild(b);
 });
 
+
+/* ---------- levels: every 10 collected the world changes ---------- */
+const LEVELS = [
+  {name:'Cielo',     top:'#5ec8ff', bot:'#dff6ff', ground:'hills',  sky:'sun',     items:['star','balloon'],           cloudA:0.92, speed:1.0},
+  {name:'Tramonto',  top:'#ff8a5c', bot:'#ffd99a', ground:'hills',  sky:'bigsun',  items:['star','heart','balloon'],   cloudA:0.85, speed:1.05},
+  {name:'Mare',      top:'#4fb3ff', bot:'#bfe9ff', ground:'sea',    sky:'sun',     items:['star','fish','balloon'],    cloudA:0.9,  speed:1.1},
+  {name:'Montagne',  top:'#8fd3ff', bot:'#eef9ff', ground:'mountains', sky:'sun',  items:['star','snow','heart'],      cloudA:0.95, speed:1.1},
+  {name:'Notte',     top:'#1b2a6b', bot:'#4a4e9c', ground:'city',   sky:'moon',    items:['star','balloon','heart'],   cloudA:0.35, speed:1.15},
+  {name:'Spazio',    top:'#090a2a', bot:'#2a1a5c', ground:'none',   sky:'stars',   items:['star','planet','rocket'],   cloudA:0.0,  speed:1.2},
+  {name:'Giardino',  top:'#7fd8ff', bot:'#e8ffe0', ground:'meadow', sky:'sun',     items:['star','flower','butterfly'],cloudA:0.9,  speed:1.2},
+  {name:'Dolci',     top:'#ffb3d9', bot:'#ffe9f5', ground:'hills',  sky:'bigsun',  items:['star','candy','balloon'],   cloudA:0.95, speed:1.25},
+  {name:'Arcobaleno',top:'#6ad1ff', bot:'#fff5c2', ground:'meadow', sky:'rainbow', items:['star','heart','balloon','candy','fish'], cloudA:0.9, speed:1.3},
+];
+const PER_LEVEL = 10;
+let levelIdx = 0, levelBlend = 1, prevLevel = LEVELS[0], levelTimer = 0, skyStars = [], groundOff = 0, fishJump = [];
+for (let i=0;i<70;i++) skyStars.push({x:Math.random(), y:Math.random()*0.8, r:0.8+Math.random()*1.6, tw:Math.random()*6});
+function hexToRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function mixColor(a,b,t){ const A=hexToRgb(a),B=hexToRgb(b); return `rgb(${A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')})`; }
+function levelFor(sc){ return Math.min(LEVELS.length-1, Math.floor(sc/PER_LEVEL)); }
+function setLevel(i){
+  if (i===levelIdx) return;
+  prevLevel = LEVELS[levelIdx]; levelIdx=i; levelBlend=0;
+  document.getElementById('level').textContent = i+1;
+  bravoText.textContent = 'LIVELLO '+(i+1)+'!'; bravoText.style.fontSize='';
+  levelName.textContent = LEVELS[i].name; levelName.hidden=false;
+  bravoEl.hidden=false; bravoTimer=2.4; fanfare(); setTimeout(fanfare, 450);
+  for(let k=0;k<60;k++) confetti.push({x:Math.random()*W, y:-20-Math.random()*H*0.3, vx:(Math.random()-0.5)*60, vy:120+Math.random()*160, rot:Math.random()*6, vr:(Math.random()-0.5)*8, color:BALLOON_COLORS[k%BALLOON_COLORS.length], w:8+Math.random()*8, h:5+Math.random()*5});
+}
+
 /* ---------- game state ---------- */
 let state='menu', score=0, streak=0, lastT=0, time=0;
 const plane={x:0,y:0,tx:0,ty:0,vy:0,tilt:0};
@@ -210,7 +244,7 @@ function startGame(){
   audioInit();
   state='play'; score=0; streak=0; items=[]; particles=[]; confetti=[]; birds=[];
   plane.x=W*0.25; plane.y=H*0.5; plane.tx=plane.x; plane.ty=plane.y; plane.vy=0;
-  scoreEl.textContent='0';
+  scoreEl.textContent='0'; levelIdx=0; levelBlend=1; prevLevel=LEVELS[0]; document.getElementById('level').textContent='1'; fishJump=[];
   menu.hidden=true; hud.hidden=false; hint.hidden=false; hintTimer=5;
   if(engine) engine.g.gain.setTargetAtTime(0.12, AC.currentTime, 0.3);
   spawnTimer=0.4;
@@ -246,25 +280,30 @@ for(let i=0;i<4;i++) farClouds.push(makeCloud(true, Math.random()*W));
 for(let i=0;i<3;i++) clouds.push(makeCloud(false, Math.random()*W));
 
 function spawnItem(){
-  const r=Math.random();
-  const y = 60+Math.random()*(H-120);
-  if (r<0.55) items.push({kind:'star', x:W+40, y, r:22, spin:Math.random()*6, ph:Math.random()*6});
-  else if (r<0.9) items.push({kind:'balloon', x:W+40, y, r:26, color:BALLOON_COLORS[Math.floor(Math.random()*BALLOON_COLORS.length)], ph:Math.random()*6});
-  else items.push({kind:'rainbow', x:W+60, y, r:30, ph:0});
+  const L=LEVELS[levelIdx], y = 60+Math.random()*(H-160);
+  if (Math.random()<0.08) { items.push({kind:'rainbow', x:W+60, y, r:30, ph:0}); return; }
+  const kind = L.items[Math.floor(Math.random()*L.items.length)];
+  const it = {kind, x:W+40, y, r:24, ph:Math.random()*6, spin:Math.random()*6, color:BALLOON_COLORS[Math.floor(Math.random()*BALLOON_COLORS.length)]};
+  if (kind==='star') it.r=22; if (kind==='balloon') it.r=26; if (kind==='planet') it.r=28;
+  items.push(it);
 }
 function burst(x,y,color,n){
   for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=120+Math.random()*220;
     particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.7+Math.random()*0.4,t:0,color,r:4+Math.random()*5}); }
 }
 function sayBravo(){
-  bravoText.textContent = PRAISE[Math.floor(Math.random()*PRAISE.length)];
+  bravoText.textContent = PRAISE[Math.floor(Math.random()*PRAISE.length)]; levelName.hidden=true;
   bravoEl.hidden=false; bravoTimer=1.6; fanfare();
   for(let i=0;i<90;i++) confetti.push({x:Math.random()*W, y:-20-Math.random()*H*0.3, vx:(Math.random()-0.5)*60, vy:120+Math.random()*160, rot:Math.random()*6, vr:(Math.random()-0.5)*8, color:BALLOON_COLORS[i%BALLOON_COLORS.length], w:8+Math.random()*8, h:5+Math.random()*5});
 }
 
 function update(dt){
   time+=dt;
-  const speed = W*0.28; // px/s, gentle
+  const speed = W*0.28*LEVELS[levelIdx].speed; // px/s, gentle
+  if (levelBlend<1) levelBlend=Math.min(1, levelBlend+dt/1.5);
+  groundOff = (groundOff + speed*0.5*dt) % 10000;
+  if (state==='play' && LEVELS[levelIdx].ground==='sea') { levelTimer-=dt; if (levelTimer<=0){ fishJump.push({x:Math.random()*W, t:0}); levelTimer=2+Math.random()*3; } }
+  for (let i=fishJump.length-1;i>=0;i--){ fishJump[i].t+=dt; fishJump[i].x-=speed*0.5*dt; if (fishJump[i].t>1.4) fishJump.splice(i,1); }
   // clouds
   for (const arr of [farClouds, clouds]) for (const c of arr) { c.x -= speed*(c.far?0.25:0.55)*c.s*dt; c.wob*=0.92; if (c.x < -200*c.s) { Object.assign(c, makeCloud(c.far)); } }
   if (state!=='play') { // menu idle: gently drift items anyway
@@ -300,11 +339,14 @@ function update(dt){
     const dx=it.x-plane.x, dy=it.y-plane.y, hit = (it.r+38*pr);
     if (dx*dx+dy*dy < hit*hit) {
       items.splice(i,1);
-      if (it.kind==='star') { score++; streak++; chime(streak); burst(it.x,it.y,'#ffd54a',16); }
-      else if (it.kind==='balloon') { score++; streak++; popSound(); burst(it.x,it.y,it.color,22); }
-      else { score+=3; streak+=3; fanfare(); for (const c of BALLOON_COLORS) burst(it.x,it.y,c,6); }
+      const before=score;
+      if (it.kind==='rainbow') { score+=3; streak+=3; fanfare(); for (const c of BALLOON_COLORS) burst(it.x,it.y,c,6); }
+      else if (it.kind==='balloon'||it.kind==='candy') { score++; streak++; popSound(); burst(it.x,it.y,it.color,22); }
+      else { score++; streak++; chime(streak); burst(it.x,it.y, it.kind==='star'?'#ffd54a': it.kind==='heart'?'#ff4f7a': it.kind==='snow'?'#ffffff': it.kind==='fish'?'#ff9f43': it.color,16); }
       scoreEl.textContent=score;
-      if (score>0 && Math.floor(score/10) > Math.floor((score-(it.kind==='rainbow'?3:1))/10)) sayBravo();
+      const nl = levelFor(score);
+      if (nl!==levelIdx) setLevel(nl);
+      else if (Math.floor(score/PER_LEVEL) > Math.floor(before/PER_LEVEL)) sayBravo();
     } else if (it.x < -80) { items.splice(i,1); streak=0; }
   }
   // cloud pass-through: soft puff, no penalty
@@ -347,23 +389,115 @@ function drawBird(b){
   ctx.save(); ctx.translate(b.x,b.y); ctx.scale(b.s,b.s); ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round';
   const f=Math.sin(b.flap)*8; ctx.beginPath(); ctx.moveTo(-18,f); ctx.quadraticCurveTo(-9,-8,0,0); ctx.quadraticCurveTo(9,-8,18,f); ctx.stroke(); ctx.restore();
 }
+
+function drawHeart(it){
+  ctx.save(); ctx.translate(it.x,it.y); const r=it.r*0.9; ctx.fillStyle='#ff4f7a'; ctx.strokeStyle='#c2185b'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(0,r*0.9); ctx.bezierCurveTo(-r*1.3,-r*0.1,-r*0.7,-r*1.1,0,-r*0.4); ctx.bezierCurveTo(r*0.7,-r*1.1,r*1.3,-r*0.1,0,r*0.9); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(-r*0.4,-r*0.45,r*0.18,r*0.28,-0.5,0,Math.PI*2); ctx.fill(); ctx.restore();
+}
+function drawFish(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.scale(-1,1); const r=it.r; ctx.fillStyle='#ff9f43'; ctx.strokeStyle='#d35400'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.ellipse(0,0,r,r*0.6,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  const f=Math.sin(it.ph*10)*6; ctx.beginPath(); ctx.moveTo(-r*0.9,0); ctx.lineTo(-r*1.5,-r*0.6+f); ctx.lineTo(-r*1.5,r*0.6+f); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.45,-r*0.15,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(r*0.5,-r*0.15,2.5,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=2; for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.arc(i*8-4,0,6,-1,1); ctx.stroke(); } ctx.restore();
+}
+function drawSnow(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.rotate(it.spin*0.5); ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.shadowColor='rgba(80,160,255,.6)'; ctx.shadowBlur=8;
+  for(let i=0;i<6;i++){ ctx.rotate(Math.PI/3); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-it.r); ctx.moveTo(0,-it.r*0.6); ctx.lineTo(-6,-it.r*0.8); ctx.moveTo(0,-it.r*0.6); ctx.lineTo(6,-it.r*0.8); ctx.stroke(); } ctx.restore();
+}
+function drawPlanet(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.fillStyle=it.color; ctx.beginPath(); ctx.arc(0,0,it.r*0.75,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.15)'; ctx.beginPath(); ctx.arc(-it.r*0.25,-it.r*0.2,it.r*0.18,0,Math.PI*2); ctx.arc(it.r*0.2,it.r*0.25,it.r*0.12,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=5; ctx.beginPath(); ctx.ellipse(0,0,it.r*1.3,it.r*0.35,-0.4,0,Math.PI*2); ctx.stroke(); ctx.restore();
+}
+function drawRocket(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.rotate(-0.3); const r=it.r;
+  ctx.fillStyle='rgba(255,160,60,.8)'; ctx.beginPath(); ctx.moveTo(-r*0.8,-r*0.3); ctx.lineTo(-r*1.6+Math.random()*8,0); ctx.lineTo(-r*0.8,r*0.3); ctx.fill();
+  ctx.fillStyle='#eee'; ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.beginPath(); ctx.ellipse(0,0,r,r*0.45,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#ff4f4f'; ctx.beginPath(); ctx.moveTo(-r*0.6,-r*0.3); ctx.lineTo(-r*1.1,-r*0.9); ctx.lineTo(-r*0.4,-r*0.1); ctx.fill(); ctx.beginPath(); ctx.moveTo(-r*0.6,r*0.3); ctx.lineTo(-r*1.1,r*0.9); ctx.lineTo(-r*0.4,r*0.1); ctx.fill();
+  ctx.fillStyle='#4fb3ff'; ctx.beginPath(); ctx.arc(r*0.2,0,r*0.22,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.restore();
+}
+function drawFlower(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.rotate(it.spin*0.3); ctx.fillStyle=it.color;
+  for(let i=0;i<6;i++){ ctx.rotate(Math.PI/3); ctx.beginPath(); ctx.ellipse(0,-it.r*0.6,it.r*0.35,it.r*0.6,0,0,Math.PI*2); ctx.fill(); }
+  ctx.fillStyle='#ffd54a'; ctx.strokeStyle='#f0a500'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,it.r*0.4,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.restore();
+}
+function drawButterfly(it){
+  ctx.save(); ctx.translate(it.x,it.y); const f=Math.abs(Math.sin(it.ph*8))*0.6+0.4;
+  for (const sgn of [-1,1]) { ctx.save(); ctx.scale(sgn*f,1); ctx.fillStyle=it.color; ctx.beginPath(); ctx.ellipse(it.r*0.6,-it.r*0.4,it.r*0.6,it.r*0.5,0.3,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(it.r*0.5,it.r*0.4,it.r*0.45,it.r*0.4,-0.3,0,Math.PI*2); ctx.fill(); ctx.fillStyle='rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(it.r*0.6,-it.r*0.4,it.r*0.18,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+  ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.ellipse(0,0,it.r*0.15,it.r*0.8,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+}
+function drawCandy(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.rotate(it.spin*0.4); const r=it.r*0.75; ctx.fillStyle=it.color; ctx.strokeStyle='#1d3557'; ctx.lineWidth=2.5;
+  for (const sgn of [-1,1]) { ctx.beginPath(); ctx.moveTo(sgn*r*0.8,0); ctx.lineTo(sgn*r*1.6,-r*0.6); ctx.lineTo(sgn*r*1.5,0); ctx.lineTo(sgn*r*1.6,r*0.6); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=4; for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.moveTo(i*r*0.5-r*0.3,-r*0.8); ctx.lineTo(i*r*0.5+r*0.3,r*0.8); ctx.stroke(); } ctx.restore();
+}
+function drawItem(it){
+  switch(it.kind){
+    case 'star': return drawStar(it.x,it.y,it.r+Math.sin(it.ph*4)*2,it.spin,'#ffd54a');
+    case 'balloon': return drawBalloon(it);
+    case 'rainbow': return drawRainbow(it);
+    case 'heart': return drawHeart(it);
+    case 'fish': return drawFish(it);
+    case 'snow': return drawSnow(it);
+    case 'planet': return drawPlanet(it);
+    case 'rocket': return drawRocket(it);
+    case 'flower': return drawFlower(it);
+    case 'butterfly': return drawButterfly(it);
+    case 'candy': return drawCandy(it);
+  }
+}
+function drawSky(){
+  const L=LEVELS[levelIdx], t=levelBlend;
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0, mixColor(prevLevel.top,L.top,t)); g.addColorStop(1, mixColor(prevLevel.bot,L.bot,t));
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  const night = (L.sky==='moon'||L.sky==='stars') ? t : ((prevLevel.sky==='moon'||prevLevel.sky==='stars') ? 1-t : 0);
+  if (night>0) { ctx.fillStyle='#fff'; for (const st of skyStars) { ctx.globalAlpha=night*(0.5+0.5*Math.sin(time*2+st.tw)); ctx.beginPath(); ctx.arc(st.x*W, st.y*H, st.r,0,Math.PI*2); ctx.fill(); } ctx.globalAlpha=1; }
+  // celestial body
+  ctx.save(); ctx.translate(W-90, 90);
+  if (L.sky==='moon') { ctx.fillStyle='#fff7c2'; ctx.beginPath(); ctx.arc(0,0,44,0,Math.PI*2); ctx.fill(); ctx.fillStyle=mixColor(prevLevel.top,L.top,t); ctx.beginPath(); ctx.arc(18,-10,36,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(-22,-4,3,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(-14,6,10,0.3*Math.PI,0.8*Math.PI); ctx.stroke(); }
+  else if (L.sky==='stars') { ctx.fillStyle='#b088f9'; ctx.beginPath(); ctx.arc(0,0,40,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='#ffd54a'; ctx.lineWidth=6; ctx.beginPath(); ctx.ellipse(0,0,66,16,-0.35,0,Math.PI*2); ctx.stroke(); }
+  else if (L.sky==='rainbow') { ctx.lineWidth=14; ['#ff4f4f','#fb923c','#ffd54a','#3ccf91','#3b82f6','#a855f7'].forEach((c,i)=>{ ctx.strokeStyle=c; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.arc(-W*0.4,H*0.9-90, W*0.55-i*14, Math.PI*1.05, Math.PI*1.95); ctx.stroke(); }); ctx.globalAlpha=1; }
+  else { const big=L.sky==='bigsun'; const R=big?70:48; ctx.fillStyle='rgba(255,213,74,.35)'; ctx.beginPath(); ctx.arc(0,0,R+22+Math.sin(time)*3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=big?'#ffb347':'#ffd54a'; ctx.beginPath(); ctx.arc(0,0,R,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(-14,-6,4,0,Math.PI*2); ctx.arc(14,-6,4,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(0,4,18,0.25*Math.PI,0.75*Math.PI); ctx.stroke(); }
+  ctx.restore();
+}
+function drawGround(){
+  const L=LEVELS[levelIdx]; const base=H;
+  const drawFor=(G,alpha)=>{ if (G==='none'||alpha<=0) return; ctx.save(); ctx.globalAlpha=alpha;
+    if (G==='sea') { ctx.fillStyle='#2b7fd6'; ctx.beginPath(); ctx.moveTo(0,base); for(let x=0;x<=W;x+=20) ctx.lineTo(x, base-60+Math.sin((x+groundOff*2)/60)*8+Math.sin((x-groundOff)/35)*4); ctx.lineTo(W,base); ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=3; ctx.beginPath(); for(let x=0;x<=W;x+=20) ctx.lineTo(x, base-58+Math.sin((x+groundOff*2)/60)*8+Math.sin((x-groundOff)/35)*4); ctx.stroke();
+      for (const f of fishJump) { const u=f.t/1.4, y=base-60-Math.sin(u*Math.PI)*110; ctx.save(); ctx.translate(f.x,y); ctx.rotate((u-0.5)*2.2); ctx.fillStyle='#5dade2'; ctx.beginPath(); ctx.ellipse(0,0,22,12,0,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.moveTo(-20,0); ctx.lineTo(-34,-12); ctx.lineTo(-34,12); ctx.fill(); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(10,-3,4,0,Math.PI*2); ctx.fill(); ctx.restore(); } }
+    else if (G==='hills') { for (const [col,amp,sp,off] of [['#8fd16a',40,0.6,0],['#5fbf4a',28,1.0,60]]) { ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,base); for(let x=0;x<=W;x+=16) ctx.lineTo(x, base-off-amp-Math.sin((x+groundOff*sp)/140)*amp); ctx.lineTo(W,base); ctx.fill(); } }
+    else if (G==='meadow') { ctx.fillStyle='#6fcf5a'; ctx.fillRect(0,base-70,W,70); ctx.fillStyle='#8fe07a'; ctx.beginPath(); ctx.moveTo(0,base); for(let x=0;x<=W;x+=16) ctx.lineTo(x, base-70-Math.sin((x+groundOff*0.8)/120)*14); ctx.lineTo(W,base); ctx.fill();
+      for (let x=((-groundOff*0.9)%90+90)%90; x<W; x+=90) { const c=BALLOON_COLORS[Math.floor(x/90+groundOff/90)%BALLOON_COLORS.length]; ctx.strokeStyle='#3a9d3a'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x,base-40); ctx.lineTo(x,base-70); ctx.stroke(); ctx.fillStyle=c; for(let i=0;i<5;i++){ const a=i*Math.PI*2/5; ctx.beginPath(); ctx.arc(x+Math.cos(a)*8,base-72+Math.sin(a)*8,6,0,Math.PI*2); ctx.fill(); } ctx.fillStyle='#ffd54a'; ctx.beginPath(); ctx.arc(x,base-72,5,0,Math.PI*2); ctx.fill(); } }
+    else if (G==='mountains') { for (const [col,hgt,sp,per] of [['#9bb7d4',220,0.3,260],['#6f8fb3',160,0.6,180]]) { ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,base); for(let x=0;x<=W;x+=12) ctx.lineTo(x, base-Math.abs(((x+groundOff*sp)%per)-per/2)/(per/2)*hgt-20); ctx.lineTo(W,base); ctx.fill(); }
+      ctx.strokeStyle='#fff'; ctx.lineWidth=6; ctx.lineCap='round'; ctx.beginPath(); for(let x=0;x<=W;x+=12){ const h=Math.abs(((x+groundOff*0.6)%180)-90)/90*160; if (h>120) { ctx.lineTo(x, base-h-20); } else ctx.moveTo(x, base-h-20); } ctx.stroke(); }
+    else if (G==='city') { ctx.fillStyle='#141a3a'; for (let x=((-groundOff*0.7)%80+80)%80-80; x<W+80; x+=80) { const i=Math.floor((x+groundOff*0.7)/80); const h=60+((i*37)%90); ctx.fillRect(x,base-h,60,h); ctx.fillStyle='#ffe28a'; for(let wy=base-h+12; wy<base-14; wy+=18) for (let wx=x+10; wx<x+52; wx+=16) if (((i*7+wy+wx)%5)!==0) ctx.fillRect(wx,wy,7,9); ctx.fillStyle='#141a3a'; } }
+    ctx.restore(); };
+  drawFor(prevLevel.ground, 1-levelBlend); drawFor(L.ground, levelBlend);
+}
+
 function draw(){
   ctx.clearRect(0,0,W,H);
-  // sun
-  ctx.save(); ctx.translate(W-90, 90); ctx.fillStyle='rgba(255,213,74,.35)'; ctx.beginPath(); ctx.arc(0,0,70+Math.sin(time)*3,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#ffd54a'; ctx.beginPath(); ctx.arc(0,0,48,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(-14,-6,4,0,Math.PI*2); ctx.arc(14,-6,4,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(0,4,18,0.25*Math.PI,0.75*Math.PI); ctx.stroke(); ctx.restore();
-  for (const c of farClouds) drawCloud(c, 0.6);
+  drawSky();
+  const cA = LEVELS[levelIdx].cloudA*levelBlend + prevLevel.cloudA*(1-levelBlend);
+  for (const c of farClouds) drawCloud(c, 0.65*cA);
+  drawGround();
   for (const b of birds) drawBird(b);
   if (state==='play') {
-    for (const it of items) { if (it.kind==='star') drawStar(it.x,it.y,it.r+Math.sin(it.ph*4)*2,it.spin,'#ffd54a'); else if (it.kind==='balloon') drawBalloon(it); else drawRainbow(it); }
+    for (const it of items) drawItem(it);
     drawPlane(plane.x, plane.y, plane.tilt, PLANES[planeIdx], time);
   } else {
     // menu: plane cruises along the bottom
     drawPlane(W*0.5 + Math.sin(time*0.7)*W*0.25, H*0.86 + Math.sin(time*1.4)*10, Math.cos(time*0.7)*0.12, PLANES[planeIdx], time);
   }
-  for (const c of clouds) drawCloud(c, 0.92);
+  for (const c of clouds) drawCloud(c, cA);
   for (const p of particles) { ctx.globalAlpha=1-p.t/p.life; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
   ctx.globalAlpha=1;
   for (const c of confetti) { ctx.save(); ctx.translate(c.x,c.y); ctx.rotate(c.rot); ctx.fillStyle=c.color; ctx.fillRect(-c.w/2,-c.h/2,c.w,c.h); ctx.restore(); }
