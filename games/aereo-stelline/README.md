@@ -8,8 +8,16 @@ e raccoglie stelline, palloncini e arcobaleni attraversando 9 mondi.
 - Su PC funzionano anche le frecce della tastiera.
 - Ogni 10 oggetti raccolti si passa al livello successivo: cambia il mondo (tramonto, mare, montagne, notte, spazio, giardino, dolci, arcobaleno) e cambiano le cose da raccogliere.
 - Non bisogna toccare terra: l'aereo scoppia e si perde un cuore. Ci sono 5 cuori.
-- Finiti i cuori, compare un grande sole: toccandolo si vola ancora per 1 minuto,
-  poi la partita finisce con la schermata "Fine!". Il sole si può usare una volta sola.
+- Finiti i cuori compare "Oh no!" e si può ricominciare.
+
+## Timer segreto per i genitori
+- Tieni premuto il sole (di notte la luna, nello spazio il pianeta) per 2 secondi:
+  parte un conto alla rovescia di 60 secondi. Un tocco breve non fa niente.
+- Tenendolo premuto di nuovo per 2 secondi il conto si annulla.
+- A tempo scaduto compare "Fine! L'aereo va a fare la nanna" e il gioco resta bloccato,
+  anche chiudendo e riaprendo la pagina.
+- Per sbloccare tieni premuto il lucchetto in basso per 3 secondi.
+
 - Pulsante blu: pausa (anche tasto P o Esc). Il gioco va in pausa da solo se si cambia app.
 - Pulsante verde: suono acceso/spento. Pulsante rosa: torna al menu.
 

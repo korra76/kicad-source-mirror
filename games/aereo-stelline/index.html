@@ -55,10 +55,11 @@ h1{margin:0;font-size:clamp(40px,10vw,84px);font-weight:800;line-height:1;color:
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center}
 .big.alt{min-width:0;font-size:clamp(20px,4.5vmin,32px);background:var(--btn-3);box-shadow:0 6px 0 #c21d72,0 10px 18px rgba(0,60,120,.3)}
 .big.alt:active{box-shadow:0 2px 0 #c21d72}
-.sun-btn{width:clamp(110px,28vmin,200px);height:clamp(110px,28vmin,200px);max-width:100%;border:0;background:none;padding:0;cursor:pointer;border-radius:50%;animation:pulse 1.2s ease-in-out infinite}
-.sun-btn svg{width:100%;height:100%;display:block}
-.sun-btn .rays{transform-origin:50px 50px;animation:spin 8s linear infinite}
-.sun-btn:focus-visible{outline:5px solid #fff;outline-offset:4px}
+.sleepy{width:clamp(80px,22vmin,150px);height:clamp(80px,22vmin,150px)}
+.sleepy svg{width:100%;height:100%;display:block;animation:pulse 3s ease-in-out infinite}
+.unlock{width:44px;height:44px;padding:0;border:0;background:none;cursor:pointer;opacity:.7;touch-action:none;-webkit-user-select:none;user-select:none}
+.unlock svg{width:100%;height:100%;display:block}
+.unlock:focus-visible{outline:4px solid #fff;outline-offset:3px;border-radius:50%}
 @keyframes pulse{50%{transform:scale(1.08)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .hud-btns{display:flex;gap:10px;pointer-events:auto}
@@ -73,7 +74,7 @@ h1{margin:0;font-size:clamp(40px,10vw,84px);font-weight:800;line-height:1;color:
 @keyframes pop{0%{transform:scale(.3) rotate(-8deg);opacity:0}30%{transform:scale(1.15) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 #hint{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--card);border-radius:999px;padding:8px 20px;font-size:clamp(16px,3.5vw,24px);font-weight:700;pointer-events:none;max-width:calc(100% - 32px);text-align:center;box-shadow:0 4px 12px rgba(0,60,120,.2);animation:bob 1.4s ease-in-out infinite}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-8px)}}
-@media (prefers-reduced-motion:reduce){#hint,#bravo span,.sun-btn,.sun-btn .rays,.score.timer.low{animation:none}}
+@media (prefers-reduced-motion:reduce){#hint,#bravo span,.sleepy svg,.score.timer.low{animation:none}}
 </style>
 </head>
 <body>
@@ -104,21 +105,23 @@ h1{margin:0;font-size:clamp(40px,10vw,84px);font-weight:800;line-height:1;color:
 
 <div class="ui overlay" id="over" hidden>
   <h1>Oh no!</h1>
-  <p class="sub">Tocca il sole per volare ancora un minuto!</p>
-  <button class="sun-btn" id="sun" aria-label="Tocca il sole: ancora un minuto"><svg viewBox="0 0 100 100" aria-hidden="true"><g class="rays" stroke="#ffb300" stroke-width="7" stroke-linecap="round">
-<path d="M50 4v12M50 84v12M4 50h12M84 50h12M17.5 17.5l8.5 8.5M74 74l8.5 8.5M17.5 82.5l8.5-8.5M74 26l8.5-8.5"/></g>
-<circle cx="50" cy="50" r="30" fill="#ffd54a" stroke="#f0a500" stroke-width="3"/>
-<circle cx="40" cy="45" r="3.5" fill="#1d3557"/><circle cx="60" cy="45" r="3.5" fill="#1d3557"/>
-<circle cx="34" cy="56" r="4" fill="#ff9f8a" opacity=".7"/><circle cx="66" cy="56" r="4" fill="#ff9f8a" opacity=".7"/>
-<path d="M39 56q11 11 22 0" fill="none" stroke="#1d3557" stroke-width="3.5" stroke-linecap="round"/></svg></button>
-  <div class="row"><div class="score"><svg viewBox="0 0 24 24"><path fill="#ffd54a" stroke="#f0a500" stroke-width="1.2" stroke-linejoin="round" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.6L12 17.4l-5.9 3.2 1.2-6.6L2.5 9.4l6.6-.9z"/></svg><span id="over-score">0</span></div><button class="big alt" id="over-home">MENU</button></div>
+  <div class="score"><svg viewBox="0 0 24 24"><path fill="#ffd54a" stroke="#f0a500" stroke-width="1.2" stroke-linejoin="round" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.6L12 17.4l-5.9 3.2 1.2-6.6L2.5 9.4l6.6-.9z"/></svg><span id="over-score">0</span></div>
+  <div class="row"><button class="big" id="again-over">GIOCA ANCORA</button><button class="big alt" id="over-home">MENU</button></div>
 </div>
 
 <div class="ui overlay" id="end" hidden>
   <h1>Fine!</h1>
-  <p class="sub">Bravissimo! Hai raccolto</p>
+  <div class="sleepy"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="56" r="30" fill="#ffd54a" stroke="#f0a500" stroke-width="3"/>
+<path d="M35 52q5 5 10 0M55 52q5 5 10 0" fill="none" stroke="#1d3557" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="34" cy="62" r="4" fill="#ff9f8a" opacity=".7"/><circle cx="66" cy="62" r="4" fill="#ff9f8a" opacity=".7"/>
+<path d="M44 68q6 4 12 0" fill="none" stroke="#1d3557" stroke-width="3" stroke-linecap="round"/>
+<text x="70" y="26" font-family="inherit" font-weight="800" font-size="16" fill="#fff">z</text><text x="80" y="14" font-family="inherit" font-weight="800" font-size="12" fill="#fff">z</text></svg></div>
+  <p class="sub">L'aereo va a fare la nanna</p>
   <div class="score"><svg viewBox="0 0 24 24"><path fill="#ffd54a" stroke="#f0a500" stroke-width="1.2" stroke-linejoin="round" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.6L12 17.4l-5.9 3.2 1.2-6.6L2.5 9.4l6.6-.9z"/></svg><span id="end-score">0</span></div>
-  <div class="row"><button class="big" id="again">GIOCA ANCORA</button><button class="big alt" id="end-home">MENU</button></div>
+  <button class="unlock" id="unlock" aria-label="Per i genitori: tieni premuto 3 secondi per sbloccare">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/><circle id="unlock-ring" cx="20" cy="20" r="17" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="106.8" transform="rotate(-90 20 20)"/>
+    <path d="M14 19v-3a6 6 0 0 1 12 0v3M12 19h16v11H12z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>
+  </button>
 </div>
 
 <div class="ui" id="menu">
@@ -314,8 +317,13 @@ let items=[], clouds=[], farClouds=[], particles=[], birds=[], confetti=[];
 let spawnTimer=0, cloudTimer=0, birdTimer=0, bravoTimer=0, hintTimer=0;
 const keys={};
 let pointerDown=false;
-const MAX_LIVES = 5, BONUS_SECONDS = 60;
-let lives=MAX_LIVES, crashT=0, invuln=0, shake=0, booms=[], bonus=false, bonusLeft=0, lastTickSec=0;
+const MAX_LIVES = 5, PARENT_SECONDS = 60, SUN_HOLD = 2, UNLOCK_HOLD = 3;
+let lives=MAX_LIVES, crashT=0, invuln=0, shake=0, booms=[], lastTickSec=0;
+// parents' secret: hold the sun (or moon/planet) for 2 s to start a 60 s countdown, then the game locks
+let parentActive=false, parentLeft=0, secretHold=null, secretStart=null, unlockHold=null;
+const skyPos={x:0,y:90};
+function isLocked(){ try { return localStorage.getItem('aereo.locked')==='1'; } catch(e){ return false; } }
+function setLocked(v){ try { if (v) localStorage.setItem('aereo.locked','1'); else localStorage.removeItem('aereo.locked'); } catch(e){} }
 const HEART='<svg viewBox="0 0 24 24"><path fill="#ff4f7a" stroke="#c2185b" stroke-width="1.5" stroke-linejoin="round" d="M12 21s-7.5-4.6-9.5-9.3C1 8.2 3.2 4.5 6.8 4.5c2.2 0 3.7 1.2 5.2 3 1.5-1.8 3-3 5.2-3 3.6 0 5.8 3.7 4.3 7.2C19.5 16.4 12 21 12 21z"/></svg>';
 function renderLives(){
   livesEl.innerHTML = Array.from({length:MAX_LIVES},(_,i)=>HEART.replace('<svg', i<lives?'<svg':'<svg class="lost"')).join('');
@@ -329,9 +337,10 @@ function respawn(){
 }
 
 function startGame(){
+  if (isLocked()) { endGame(true); return; }
   audioInit();
   state='play'; score=0; streak=0; items=[]; particles=[]; confetti=[]; birds=[]; booms=[];
-  lives=MAX_LIVES; renderLives(); bonus=false; shake=0; livesEl.hidden=false; timerPill.hidden=true; timerPill.classList.remove('low');
+  lives=MAX_LIVES; renderLives(); shake=0; secretHold=null; timerPill.hidden=!parentActive;
   respawn(); invuln=1.5;
   scoreEl.textContent='0'; levelIdx=0; levelBlend=1; prevLevel=LEVELS[0]; document.getElementById('level').textContent='1'; fishJump=[];
   showOnly(null); hud.hidden=false; hint.hidden=false; hintTimer=6; bravoEl.hidden=true;
@@ -359,34 +368,40 @@ function doCrash(){
   const pc = PLANES[planeIdx];
   for (let i=0;i<8;i++) { const a=-Math.PI*Math.random(), v=150+Math.random()*200; particles.push({x:plane.x,y:plane.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1.3,t:0,color:i%2?pc.body:pc.wing,r:7+Math.random()*4}); }
   for (let i=0;i<10;i++) particles.push({x:plane.x+(Math.random()-0.5)*30,y:plane.y,vx:(Math.random()-0.5)*60,vy:-30-Math.random()*60,life:1.4,t:0,color:'#8d95a8',r:10+Math.random()*10,smoke:true});
-  if (!bonus) { lives=Math.max(0,lives-1); renderLives(); }
+  lives=Math.max(0,lives-1); renderLives();
 }
 function gameOver(){
   state='over'; hud.hidden=true; hint.hidden=true; bravoEl.hidden=true; engineOn(false);
   document.getElementById('over-score').textContent=score; showOnly(overEl); wahWah();
 }
-function startBonus(){
-  if (state!=='over') return;
-  audioInit(); state='play'; bonus=true; bonusLeft=BONUS_SECONDS; lastTickSec=0;
-  showOnly(null); hud.hidden=false; livesEl.hidden=true; timerPill.hidden=false; timerPill.classList.remove('low'); timerEl.textContent=BONUS_SECONDS;
-  respawn(); fanfare();
-  bravoText.textContent='1 MINUTO!'; levelName.hidden=true; bravoEl.hidden=false; bravoTimer=1.6;
+function toggleParentTimer(){
+  parentActive=!parentActive; parentLeft=PARENT_SECONDS; lastTickSec=0;
+  timerEl.textContent=PARENT_SECONDS; timerPill.classList.remove('low'); timerPill.hidden=!parentActive;
+  if (parentActive) { chime(0); setTimeout(()=>chime(4),150); } else { tickSound(); }
 }
-function endGame(){
-  state='end'; hud.hidden=true; hint.hidden=true; bravoEl.hidden=true; engineOn(false); crashT=0;
-  document.getElementById('end-score').textContent=score; showOnly(endEl); fanfare(); setTimeout(fanfare,500);
+function endGame(silent){
+  state='end'; parentActive=false; secretHold=null; setLocked(true);
+  hud.hidden=true; hint.hidden=true; bravoEl.hidden=true; engineOn(false); crashT=0; timerPill.hidden=true;
+  document.getElementById('end-score').textContent=score; showOnly(endEl);
+  if (silent) return;
+  fanfare();
   for(let i=0;i<120;i++) confetti.push({x:Math.random()*W, y:-20-Math.random()*H*0.4, vx:(Math.random()-0.5)*60, vy:120+Math.random()*160, rot:Math.random()*6, vr:(Math.random()-0.5)*8, color:BALLOON_COLORS[i%BALLOON_COLORS.length], w:8+Math.random()*8, h:5+Math.random()*5});
 }
+const unlockBtn=document.getElementById('unlock'), unlockRing=document.getElementById('unlock-ring');
+function setUnlockRing(f){ unlockRing.setAttribute('stroke-dashoffset', (106.8*(1-Math.min(1,f))).toFixed(1)); }
+unlockBtn.addEventListener('pointerdown', e=>{ e.preventDefault(); unlockHold=0; try{unlockBtn.setPointerCapture(e.pointerId);}catch(_){} });
+for (const ev of ['pointerup','pointercancel','lostpointercapture']) unlockBtn.addEventListener(ev, ()=>{ unlockHold=null; setUnlockRing(0); });
+unlockBtn.addEventListener('contextmenu', e=>e.preventDefault());
+function unlockGame(){ setLocked(false); setUnlockRing(0); score=0; audioInit(); chime(0); setTimeout(()=>chime(4),150); goMenu(); }
 document.getElementById('play').addEventListener('click', startGame);
 document.getElementById('home').addEventListener('click', goMenu);
 document.getElementById('pause-btn').addEventListener('click', pauseGame);
 document.getElementById('resume').addEventListener('click', resumeGame);
 document.getElementById('pause-home').addEventListener('click', goMenu);
-document.getElementById('sun').addEventListener('click', startBonus);
 document.getElementById('over-home').addEventListener('click', goMenu);
-document.getElementById('again').addEventListener('click', startGame);
-document.getElementById('end-home').addEventListener('click', goMenu);
+document.getElementById('again-over').addEventListener('click', startGame);
 renderLives();
+if (isLocked()) endGame(true);
 
 /* ---------- input: the plane goes where the finger is ---------- */
 function setTarget(e){
@@ -394,14 +409,19 @@ function setTarget(e){
   plane.tx = Math.min(W*0.6, Math.max(40, e.clientX-r.left));
   plane.ty = Math.min(H-40, Math.max(40, e.clientY-r.top));
 }
-cv.addEventListener('pointerdown', e=>{ if(state!=='play' || crashT>0) return; pointerDown=true; setTarget(e); hint.hidden=true; });
-cv.addEventListener('pointermove', e=>{ if(state==='play' && pointerDown && crashT<=0) setTarget(e); });
-window.addEventListener('pointerup', ()=>pointerDown=false);
-window.addEventListener('pointercancel', ()=>pointerDown=false);
+function nearSky(e){ const r=cv.getBoundingClientRect(), dx=e.clientX-r.left-skyPos.x, dy=e.clientY-r.top-skyPos.y; return dx*dx+dy*dy < 75*75; }
+cv.addEventListener('pointerdown', e=>{
+  if (state==='play' && nearSky(e)) { secretHold=0; secretStart={x:e.clientX,y:e.clientY}; return; }
+  if(state!=='play' || crashT>0) return; pointerDown=true; setTarget(e); hint.hidden=true; });
+cv.addEventListener('pointermove', e=>{
+  if (secretHold!==null && Math.hypot(e.clientX-secretStart.x, e.clientY-secretStart.y)>50) secretHold=null;
+  if(state==='play' && pointerDown && crashT<=0) setTarget(e); });
+window.addEventListener('pointerup', ()=>{ pointerDown=false; secretHold=null; });
+window.addEventListener('pointercancel', ()=>{ pointerDown=false; secretHold=null; });
 window.addEventListener('keydown', e=>{ keys[e.key]=true; if(state==='play' && e.key.startsWith('Arrow')) { e.preventDefault(); hint.hidden=true; } const go = e.key===' '||e.key==='Enter';
   if (e.key==='p'||e.key==='P'||e.key==='Escape') { if (state==='play') pauseGame(); else if (state==='pause') resumeGame(); return; }
   if (!go || e.repeat) return;
-  if (state==='menu'||state==='end') startGame(); else if (state==='pause') resumeGame(); else if (state==='over') startBonus(); });
+  if (state==='menu'||state==='over') startGame(); else if (state==='pause') resumeGame(); });
 window.addEventListener('keyup', e=>keys[e.key]=false);
 
 /* ---------- world ---------- */
@@ -445,17 +465,20 @@ function update(dt){
   for (let i=confetti.length-1;i>=0;i--) { const c=confetti[i]; c.x+=c.vx*dt; c.y+=c.vy*dt; c.rot+=c.vr*dt; if (c.y>H+30) confetti.splice(i,1); }
   for (let i=booms.length-1;i>=0;i--) { booms[i].t+=dt; if (booms[i].t>0.7) booms.splice(i,1); }
   if (shake>0) shake=Math.max(0, shake-dt);
-  if (state!=='play') return;
-
-  // one-minute bonus after tapping the sun
-  if (bonus) {
-    bonusLeft -= dt; const sec=Math.max(0, Math.ceil(bonusLeft));
+  // parents' unlock on the "nanna" screen
+  if (unlockHold!==null) { unlockHold+=dt; setUnlockRing(unlockHold/UNLOCK_HOLD); if (unlockHold>=UNLOCK_HOLD) { unlockHold=null; unlockGame(); } }
+  // parents' countdown keeps running on every screen except pause
+  if (parentActive && state!=='end') {
+    parentLeft -= dt; const sec=Math.max(0, Math.ceil(parentLeft));
     timerEl.textContent=sec; timerPill.classList.toggle('low', sec<=10);
     if (sec<=5 && sec!==lastTickSec && sec>0) { lastTickSec=sec; tickSound(); }
-    if (bonusLeft<=0) { endGame(); return; }
+    if (parentLeft<=0) { endGame(); return; }
   }
+  if (state!=='play') return;
+  if (secretHold!==null) { secretHold+=dt; if (secretHold>=SUN_HOLD) { secretHold=null; toggleParentTimer(); } }
+
   // after a crash: wait, then respawn or game over
-  if (crashT>0) { crashT-=dt; if (crashT<=0) { if (!bonus && lives<=0) { gameOver(); return; } respawn(); } }
+  if (crashT>0) { crashT-=dt; if (crashT<=0) { if (lives<=0) { gameOver(); return; } respawn(); } }
   if (invuln>0) invuln-=dt;
   const alive = crashT<=0;
   if (alive) {
@@ -608,15 +631,18 @@ function drawSky(){
   const night = (L.sky==='moon'||L.sky==='stars') ? t : ((prevLevel.sky==='moon'||prevLevel.sky==='stars') ? 1-t : 0);
   if (night>0) { ctx.fillStyle='#fff'; for (const st of skyStars) { ctx.globalAlpha=night*(0.5+0.5*Math.sin(time*2+st.tw)); ctx.beginPath(); ctx.arc(st.x*W, st.y*H, st.r,0,Math.PI*2); ctx.fill(); } ctx.globalAlpha=1; }
   // celestial body
-  ctx.save(); ctx.translate(W-90, 90);
+  const hb = hud.hidden ? 0 : hud.getBoundingClientRect().bottom;
+  skyPos.x = W-90; skyPos.y = Math.max(90, hb+70);
+  ctx.save(); ctx.translate(skyPos.x, skyPos.y);
   if (L.sky==='moon') { ctx.fillStyle='#fff7c2'; ctx.beginPath(); ctx.arc(0,0,44,0,Math.PI*2); ctx.fill(); ctx.fillStyle=mixColor(prevLevel.top,L.top,t); ctx.beginPath(); ctx.arc(18,-10,36,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(-22,-4,3,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(-14,6,10,0.3*Math.PI,0.8*Math.PI); ctx.stroke(); }
   else if (L.sky==='stars') { ctx.fillStyle='#b088f9'; ctx.beginPath(); ctx.arc(0,0,40,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='#ffd54a'; ctx.lineWidth=6; ctx.beginPath(); ctx.ellipse(0,0,66,16,-0.35,0,Math.PI*2); ctx.stroke(); }
-  else if (L.sky==='rainbow') { ctx.lineWidth=14; ['#ff4f4f','#fb923c','#ffd54a','#3ccf91','#3b82f6','#a855f7'].forEach((c,i)=>{ ctx.strokeStyle=c; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.arc(-W*0.4,H*0.9-90, W*0.55-i*14, Math.PI*1.05, Math.PI*1.95); ctx.stroke(); }); ctx.globalAlpha=1; }
-  else { const big=L.sky==='bigsun'; const R=big?70:48; ctx.fillStyle='rgba(255,213,74,.35)'; ctx.beginPath(); ctx.arc(0,0,R+22+Math.sin(time)*3,0,Math.PI*2); ctx.fill();
+  else if (L.sky==='rainbow') { ctx.lineWidth=14; ['#ff4f4f','#fb923c','#ffd54a','#3ccf91','#3b82f6','#a855f7'].forEach((c,i)=>{ ctx.strokeStyle=c; ctx.globalAlpha=0.7; ctx.beginPath(); ctx.arc(-W*0.4,H*0.9-skyPos.y, W*0.55-i*14, Math.PI*1.05, Math.PI*1.95); ctx.stroke(); }); ctx.globalAlpha=1; }
+  if (L.sky!=='moon' && L.sky!=='stars') { const big=L.sky==='bigsun'; const R=big?70:48; ctx.fillStyle='rgba(255,213,74,.35)'; ctx.beginPath(); ctx.arc(0,0,R+22+Math.sin(time)*3,0,Math.PI*2); ctx.fill();
     ctx.fillStyle=big?'#ffb347':'#ffd54a'; ctx.beginPath(); ctx.arc(0,0,R,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#1d3557'; ctx.beginPath(); ctx.arc(-14,-6,4,0,Math.PI*2); ctx.arc(14,-6,4,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle='#1d3557'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(0,4,18,0.25*Math.PI,0.75*Math.PI); ctx.stroke(); }
+  if (secretHold!==null && secretHold>0.25) { ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=6; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(0,0,62,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,secretHold/SUN_HOLD)); ctx.stroke(); }
   ctx.restore();
 }
 function tri(v,per){ const m=((v%per)+per)%per; return Math.abs(m-per/2)/(per/2); }
@@ -675,7 +701,7 @@ function draw(){
   if (state==='play' || state==='pause') {
     for (const it of items) drawItem(it);
     if (crashT<=0 && !(invuln>0 && Math.floor(invuln*8)%2)) drawPlane(plane.x, plane.y, plane.tilt, PLANES[planeIdx], time);
-  } else if (state!=='over') {
+  } else if (state==='menu') {
     // menu: plane cruises along the bottom
     drawPlane(W*0.5 + Math.sin(time*0.7)*W*0.25, H*0.62 + Math.sin(time*1.4)*10, Math.cos(time*0.7)*0.12, PLANES[planeIdx], time);
   }
